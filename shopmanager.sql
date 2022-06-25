@@ -208,4 +208,17 @@ order by sum(trigia) desc
 limit 1);
 
 -- câu 22: 
+select sanpham.masp, sanpham.tensp, count(cthd.sl) as 'số lượng bán ra'
+from sanpham join cthd on cthd.masp = sanpham.masp join hoadon on hoadon.sohd = cthd.sohd 
+where year(hoadon.nghd) = 2006
+group by sanpham.masp
+having count(cthd.sl) = (
+select count(cthd.sl)
+from cthd
+group by masp
+order by count(cthd.sl)
+limit 1
+);
 
+-- câu 23:
+select sanpham.masp, sanpham.tensp 
