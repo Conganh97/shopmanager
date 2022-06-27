@@ -45,6 +45,29 @@ foreign key (MASP) references SANPHAM(MASP),
 primary key (SOHD,MASP)
 );
 
+DELIMITER $$
+CREATE TRIGGER deletecthd
+ after delete on cthd
+ FOR EACH ROW
+BEGIN
+	update  hoadon,khachhang
+    set hoadon.trigia = hoadon.trigia - (old.sl * (select gia from sanpham where masp = old.masp)) where sohd = old.sohd;
+    set khachhang.doanhso = khachhang.doanhso - hoadon.trigia;
+END
+$$
+DELIMITER $$
+CREATE TRIGGER insertcthd
+ after insert on cthd
+ FOR EACH ROW
+BEGIN
+	update  hoadon,khachhang
+    set hoadon.trigia = hoadon.trigia + (new.sl * (select gia from sanpham where masp = new.masp)) where sohd = new.sohd;
+    update  khachhang
+    set khachhang.doanhso = khachhang.doanhso + hoadon.trigia ;
+END
+$$
+
+
 -- (2,'Bùi Công Anh','Nghi Tàm','0394935883','1997-01-12',0,'2022-06-25'),
 insert into khachhang values  (3,'Hoàng Trung Kiên','Lạc Long Quân','0111111111','1997/09/18',0,'2022/06/25'),
                              (4,'Trần Minh Dương','An Dương','022222222','1999/05/12',0,'2022/06/25');
@@ -221,4 +244,30 @@ limit 1
 );
 
 -- câu 23:
-select sanpham.masp, sanpham.tensp 
+select nuocsx, masp, tensp, gia
+from sanpham sp
+where gia in (
+select max(gia)
+from sanpham sp1
+where sp.nuocsx = sp1.nuocsx
+group by nuocsx
+);
+
+-- câu 24:
+select nuocsx , count(masp) 
+from sanpham 
+group by nuocsx
+having count(masp) > 2;
+
+-- câu 25:
+select khachhang.hoten, count(sohd)
+from khachhang join hoadon on hoadon.MAKH = khachhang.MAKH
+group by khachhang.hoten
+having count(sohd) = (
+select count(sohd)
+from khachhang join hoadon on hoadon.makh = khachhang.makh
+group by khachhang.hoten
+limit 1
+)
+limit 10;
+ 
